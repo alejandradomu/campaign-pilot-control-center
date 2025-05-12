@@ -1,6 +1,6 @@
-
 import React, { useState } from 'react';
 import { toast } from 'sonner';
+import { format } from 'date-fns';
 import {
   Table,
   TableBody,
@@ -31,9 +31,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
 import { mockTargets, mockCampaigns } from '@/data/mockData';
 import { Target, TargetStatus } from '@/types';
-import { Check, Download, Filter, Search, UploadCloud } from 'lucide-react';
+import { Calendar as CalendarIcon, Check, Download, Filter, Search, UploadCloud } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const TargetManagement = () => {
   const [targets, setTargets] = useState<Target[]>(mockTargets);
@@ -44,6 +47,11 @@ const TargetManagement = () => {
   const [showFilters, setShowFilters] = useState<boolean>(false);
   const [emailFilter, setEmailFilter] = useState<string>('');
   const [nameFilter, setNameFilter] = useState<string>('');
+  
+  // New filters
+  const [creationDateFilter, setCreationDateFilter] = useState<Date | undefined>(undefined);
+  const [lastContactTypeFilter, setLastContactTypeFilter] = useState<string>('all');
+  const [lastContactDateFilter, setLastContactDateFilter] = useState<Date | undefined>(undefined);
   
   // Filter targets based on all filters
   const filteredTargets = targets.filter(target => {
@@ -57,7 +65,20 @@ const TargetManagement = () => {
     const matchesName = nameFilter === '' || 
       `${target.firstName} ${target.lastName}`.toLowerCase().includes(nameFilter.toLowerCase());
     
-    return matchesCampaign && matchesStatus && matchesSearch && matchesEmail && matchesName;
+    // New filter conditions
+    const matchesCreationDate = !creationDateFilter || 
+      new Date(target.createdAt).toDateString() === creationDateFilter.toDateString();
+    
+    const matchesLastContactType = lastContactTypeFilter === 'all' || 
+      (target.metadata?.lastContactType === lastContactTypeFilter);
+    
+    const matchesLastContactDate = !lastContactDateFilter || 
+      (target.metadata?.lastContactDate && 
+       new Date(target.metadata.lastContactDate).toDateString() === lastContactDateFilter.toDateString());
+    
+    return matchesCampaign && matchesStatus && matchesSearch && 
+           matchesEmail && matchesName && matchesCreationDate && 
+           matchesLastContactType && matchesLastContactDate;
   });
   
   const handleStatusChange = (newStatus: TargetStatus) => {
@@ -136,6 +157,21 @@ const TargetManagement = () => {
       return filteredTargets.length;
     }
     return filteredTargets.filter(target => target.status === status).length;
+  };
+  
+  // Clear all filters
+  const clearFilters = () => {
+    setSearchTerm('');
+    setSelectedCampaign('all');
+    setStatusFilter('all');
+    setEmailFilter('');
+    setNameFilter('');
+    setCreationDateFilter(undefined);
+    setLastContactTypeFilter('all');
+    setLastContactDateFilter(undefined);
+    toast.info('Filters cleared', {
+      description: 'All filters have been reset.'
+    });
   };
 
   return (
@@ -232,10 +268,18 @@ const TargetManagement = () => {
               >
                 <Filter className="h-4 w-4" />
               </Button>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={clearFilters}
+              >
+                Clear Filters
+              </Button>
             </div>
             
             {showFilters && (
-              <div className="grid grid-cols-2 gap-4 p-4 bg-muted/20 rounded-lg animate-fade-in">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-muted/20 rounded-lg animate-fade-in">
                 <div>
                   <label className="text-sm font-medium">Filter by Email</label>
                   <Input
@@ -253,6 +297,90 @@ const TargetManagement = () => {
                     onChange={(e) => setNameFilter(e.target.value)}
                     className="mt-1"
                   />
+                </div>
+                
+                {/* Creation Date Filter */}
+                <div>
+                  <label className="text-sm font-medium">Creation Date</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal mt-1",
+                          !creationDateFilter && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {creationDateFilter ? (
+                          format(creationDateFilter, "PPP")
+                        ) : (
+                          <span>Pick creation date</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={creationDateFilter}
+                        onSelect={setCreationDateFilter}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                
+                {/* Last Contact Type Filter */}
+                <div>
+                  <label className="text-sm font-medium">Last Contact Type</label>
+                  <Select
+                    value={lastContactTypeFilter}
+                    onValueChange={setLastContactTypeFilter}
+                  >
+                    <SelectTrigger className="w-full mt-1">
+                      <SelectValue placeholder="Contact Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Types</SelectItem>
+                      <SelectItem value="email">Email</SelectItem>
+                      <SelectItem value="sms">SMS</SelectItem>
+                      <SelectItem value="call">Call</SelectItem>
+                      <SelectItem value="meeting">Meeting</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {/* Last Contact Date Filter */}
+                <div>
+                  <label className="text-sm font-medium">Last Contact Date</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal mt-1",
+                          !lastContactDateFilter && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {lastContactDateFilter ? (
+                          format(lastContactDateFilter, "PPP")
+                        ) : (
+                          <span>Pick last contact date</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={lastContactDateFilter}
+                        onSelect={setLastContactDateFilter}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
             )}
