@@ -118,7 +118,8 @@ const TargetManagement = () => {
     
     const updatedTargets = targets.map(target => {
       if (brushedTargets.includes(target.id)) {
-        return { ...target, status: 'loaded' };
+        // Explicitly type the status as TargetStatus
+        return { ...target, status: 'loaded' as TargetStatus };
       }
       return target;
     });
