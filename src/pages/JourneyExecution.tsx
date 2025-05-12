@@ -1,0 +1,178 @@
+
+import React, { useState } from 'react';
+import { toast } from 'sonner';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { mockJourneys, mockCampaigns } from '@/data/mockData';
+import { Circle, Mail, MessageSquare, Clock, ArrowRight, Play } from 'lucide-react';
+
+const JourneyExecution = () => {
+  const [selectedJourney, setSelectedJourney] = useState<string>('');
+  const journey = mockJourneys.find(j => j.id === selectedJourney);
+  const campaign = journey ? mockCampaigns.find(c => c.id === journey.campaignId) : null;
+  
+  const handleTriggerJourney = () => {
+    if (!selectedJourney) return;
+    
+    toast.success('Journey triggered successfully', {
+      description: `The journey has been started for campaign ${campaign?.name}.`,
+    });
+  };
+  
+  const getStepIcon = (type: string) => {
+    switch (type) {
+      case 'email':
+        return <Mail className="h-4 w-4" />;
+      case 'sms':
+        return <MessageSquare className="h-4 w-4" />;
+      case 'wait':
+        return <Clock className="h-4 w-4" />;
+      case 'condition':
+        return <Circle className="h-4 w-4" />;
+      default:
+        return <Circle className="h-4 w-4" />;
+    }
+  };
+  
+  const getStepLabel = (type: string, waitTime?: number) => {
+    switch (type) {
+      case 'email':
+        return 'Send Email';
+      case 'sms':
+        return 'Send SMS';
+      case 'wait':
+        return `Wait ${waitTime} hours`;
+      case 'condition':
+        return 'Check Condition';
+      default:
+        return 'Unknown Step';
+    }
+  };
+
+  return (
+    <div className="space-y-6 animate-fade-in">
+      <h1 className="text-3xl font-bold tracking-tight">Journey Execution</h1>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Select Journey</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4">
+            <Select
+              value={selectedJourney}
+              onValueChange={setSelectedJourney}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select a journey to execute" />
+              </SelectTrigger>
+              <SelectContent>
+                {mockJourneys.map(journey => (
+                  <SelectItem key={journey.id} value={journey.id}>
+                    {journey.name} ({mockCampaigns.find(c => c.id === journey.campaignId)?.name})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            {journey && (
+              <div className="space-y-6 mt-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-medium">{journey.name}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Campaign: {campaign?.name}
+                    </p>
+                  </div>
+                  <Badge
+                    className={
+                      journey.status === 'active'
+                        ? 'bg-green-100 text-green-800'
+                        : journey.status === 'completed'
+                        ? 'bg-purple-100 text-purple-800'
+                        : journey.status === 'paused'
+                        ? 'bg-amber-100 text-amber-800'
+                        : 'bg-gray-100 text-gray-800'
+                    }
+                  >
+                    {journey.status}
+                  </Badge>
+                </div>
+                
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium">Journey Flow</h4>
+                  <div className="p-4 bg-muted rounded-lg">
+                    <div className="flex items-center flex-wrap">
+                      {journey.steps.map((step, index) => (
+                        <React.Fragment key={step.id}>
+                          <div className="flex items-center p-2 bg-white rounded border shadow-sm">
+                            <div className="mr-2">
+                              {getStepIcon(step.type)}
+                            </div>
+                            <span className="text-sm font-medium">
+                              {getStepLabel(step.type, step.waitTime)}
+                            </span>
+                          </div>
+                          {index < journey.steps.length - 1 && (
+                            <ArrowRight className="mx-2 h-4 w-4 text-muted-foreground" />
+                          )}
+                        </React.Fragment>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex justify-end space-x-2">
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button disabled={journey.status !== 'draft'}>
+                        <Play className="mr-2 h-4 w-4" />
+                        Trigger Journey
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Trigger Journey</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to trigger this journey for campaign "{campaign?.name}"? 
+                          This will send messages to all targets with status "Loaded".
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleTriggerJourney}>
+                          Trigger
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default JourneyExecution;

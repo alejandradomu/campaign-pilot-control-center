@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,19 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Campaign manager specific colors
+				campaign: {
+					primary: '#0EA5E9', // Sky blue
+					secondary: '#0284C7', // Darker blue
+					success: '#10B981', // Green
+					warning: '#F59E0B', // Amber
+					error: '#EF4444', // Red
+					info: '#6366F1', // Indigo
+					loaded: '#10B981', // Green for loaded status
+					brushed: '#F59E0B', // Amber for brushed status
+					pending: '#6B7280', // Gray for pending status
+					completed: '#8B5CF6', // Purple for completed status
 				}
 			},
 			borderRadius: {
@@ -84,11 +98,29 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'fade-in': {
+					'0%': {
+						opacity: '0'
+					},
+					'100%': {
+						opacity: '1'
+					}
+				},
+				'pulse-light': {
+					'0%, 100%': {
+						opacity: '1'
+					},
+					'50%': {
+						opacity: '0.7'
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'fade-in': 'fade-in 0.3s ease-out',
+				'pulse-light': 'pulse-light 2s infinite'
 			}
 		}
 	},
