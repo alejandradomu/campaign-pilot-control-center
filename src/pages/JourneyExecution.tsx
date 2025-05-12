@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { toast } from 'sonner';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -11,6 +11,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,13 +31,21 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { mockJourneys, mockCampaigns } from '@/data/mockData';
+import { mockJourneys, mockCampaigns, mockTargets } from '@/data/mockData';
 import { Circle, Mail, MessageSquare, Clock, ArrowRight, Play } from 'lucide-react';
 
 const JourneyExecution = () => {
   const [selectedJourney, setSelectedJourney] = useState<string>('');
+  const [isConfirmOpen, setIsConfirmOpen] = useState<boolean>(false);
+  const [isSuccessOpen, setIsSuccessOpen] = useState<boolean>(false);
+  
   const journey = mockJourneys.find(j => j.id === selectedJourney);
   const campaign = journey ? mockCampaigns.find(c => c.id === journey.campaignId) : null;
+  
+  // Find loaded targets for the selected campaign
+  const loadedTargets = mockTargets.filter(
+    target => campaign && target.campaignId === campaign.id && target.status === 'loaded'
+  );
   
   const handleTriggerJourney = () => {
     if (!selectedJourney) return;
@@ -36,6 +53,9 @@ const JourneyExecution = () => {
     toast.success('Journey triggered successfully', {
       description: `The journey has been started for campaign ${campaign?.name}.`,
     });
+    
+    setIsConfirmOpen(false);
+    setIsSuccessOpen(true);
   };
   
   const getStepIcon = (type: string) => {
@@ -141,36 +161,92 @@ const JourneyExecution = () => {
                   </div>
                 </div>
                 
+                {loadedTargets.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium">Targets Ready for Journey ({loadedTargets.length})</h4>
+                    <div className="rounded-md border">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Name</TableHead>
+                            <TableHead>Email</TableHead>
+                            <TableHead>Status</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {loadedTargets.slice(0, 5).map(target => (
+                            <TableRow key={target.id}>
+                              <TableCell>{target.firstName} {target.lastName}</TableCell>
+                              <TableCell>{target.email}</TableCell>
+                              <TableCell>
+                                <Badge className="bg-green-100 text-green-800">{target.status}</Badge>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                          {loadedTargets.length > 5 && (
+                            <TableRow>
+                              <TableCell colSpan={3} className="text-center text-muted-foreground">
+                                And {loadedTargets.length - 5} more targets...
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                )}
+                
                 <div className="flex justify-end space-x-2">
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button disabled={journey.status !== 'draft'}>
-                        <Play className="mr-2 h-4 w-4" />
-                        Trigger Journey
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Trigger Journey</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Are you sure you want to trigger this journey for campaign "{campaign?.name}"? 
-                          This will send messages to all targets with status "Loaded".
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleTriggerJourney}>
-                          Trigger
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                  <Button 
+                    disabled={journey.status !== 'draft' || loadedTargets.length === 0} 
+                    onClick={() => setIsConfirmOpen(true)}
+                  >
+                    <Play className="mr-2 h-4 w-4" />
+                    Start Journey
+                  </Button>
                 </div>
               </div>
             )}
           </div>
         </CardContent>
       </Card>
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Start Journey</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to start this journey for campaign "{campaign?.name}"? 
+              This will send messages to {loadedTargets.length} loaded targets.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleTriggerJourney}>
+              Start Journey
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Success Dialog */}
+      <Dialog open={isSuccessOpen} onOpenChange={setIsSuccessOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Journey Started Successfully</DialogTitle>
+            <DialogDescription>
+              The journey "{journey?.name}" for campaign "{campaign?.name}" has been started.
+              {loadedTargets.length} targets will receive communications according to the journey flow.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button onClick={() => setIsSuccessOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

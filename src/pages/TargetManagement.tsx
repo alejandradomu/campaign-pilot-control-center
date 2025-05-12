@@ -33,7 +33,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { mockTargets, mockCampaigns } from '@/data/mockData';
 import { Target, TargetStatus } from '@/types';
-import { Check, Download, Search, UploadCloud } from 'lucide-react';
+import { Check, Download, Filter, Search, UploadCloud } from 'lucide-react';
 
 const TargetManagement = () => {
   const [targets, setTargets] = useState<Target[]>(mockTargets);
@@ -41,17 +41,23 @@ const TargetManagement = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedTargets, setSelectedTargets] = useState<string[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [showFilters, setShowFilters] = useState<boolean>(false);
+  const [emailFilter, setEmailFilter] = useState<string>('');
+  const [nameFilter, setNameFilter] = useState<string>('');
   
-  // Filter targets based on selected campaign, status, and search term
+  // Filter targets based on all filters
   const filteredTargets = targets.filter(target => {
     const matchesCampaign = selectedCampaign === 'all' || target.campaignId === selectedCampaign;
     const matchesStatus = statusFilter === 'all' || target.status === statusFilter;
-    const matchesSearch = 
+    const matchesSearch = searchTerm === '' || 
       target.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       target.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       target.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesEmail = emailFilter === '' || target.email.toLowerCase().includes(emailFilter.toLowerCase());
+    const matchesName = nameFilter === '' || 
+      `${target.firstName} ${target.lastName}`.toLowerCase().includes(nameFilter.toLowerCase());
     
-    return matchesCampaign && matchesStatus && matchesSearch;
+    return matchesCampaign && matchesStatus && matchesSearch && matchesEmail && matchesName;
   });
   
   const handleStatusChange = (newStatus: TargetStatus) => {
@@ -95,6 +101,40 @@ const TargetManagement = () => {
     } else {
       setSelectedTargets(filteredTargets.map(target => target.id));
     }
+  };
+
+  // Quick action to move Brushed targets to Loaded
+  const moveToLoaded = () => {
+    const brushedTargets = filteredTargets
+      .filter(target => target.status === 'brushed')
+      .map(target => target.id);
+      
+    if (brushedTargets.length === 0) {
+      toast.warning('No brushed targets', {
+        description: 'There are no brushed targets in the current view to move to loaded.',
+      });
+      return;
+    }
+    
+    const updatedTargets = targets.map(target => {
+      if (brushedTargets.includes(target.id)) {
+        return { ...target, status: 'loaded' };
+      }
+      return target;
+    });
+    
+    setTargets(updatedTargets);
+    
+    toast.success('Status updated', {
+      description: `${brushedTargets.length} targets moved from brushed to loaded.`,
+    });
+  };
+
+  const countByStatus = (status: TargetStatus | 'all') => {
+    if (status === 'all') {
+      return filteredTargets.length;
+    }
+    return filteredTargets.filter(target => target.status === status).length;
   };
 
   return (
@@ -183,22 +223,70 @@ const TargetManagement = () => {
                   <SelectItem value="failed">Failed</SelectItem>
                 </SelectContent>
               </Select>
+
+              <Button 
+                variant="outline" 
+                size="icon" 
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                <Filter className="h-4 w-4" />
+              </Button>
             </div>
             
-            <div className="flex items-center justify-between">
-              <div>
+            {showFilters && (
+              <div className="grid grid-cols-2 gap-4 p-4 bg-muted/20 rounded-lg animate-fade-in">
+                <div>
+                  <label className="text-sm font-medium">Filter by Email</label>
+                  <Input
+                    placeholder="Filter by email..."
+                    value={emailFilter}
+                    onChange={(e) => setEmailFilter(e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Filter by Name</label>
+                  <Input
+                    placeholder="Filter by name..."
+                    value={nameFilter}
+                    onChange={(e) => setNameFilter(e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap gap-2">
                 <span className="text-sm text-muted-foreground">
                   {selectedTargets.length} of {filteredTargets.length} targets selected
                 </span>
+                <div className="flex gap-2">
+                  <Badge variant="outline" className="text-xs">All: {countByStatus('all')}</Badge>
+                  <Badge variant="outline" className="text-xs bg-gray-100">Pending: {countByStatus('pending')}</Badge>
+                  <Badge variant="outline" className="text-xs bg-amber-100">Brushed: {countByStatus('brushed')}</Badge>
+                  <Badge variant="outline" className="text-xs bg-green-100">Loaded: {countByStatus('loaded')}</Badge>
+                  <Badge variant="outline" className="text-xs bg-purple-100">Completed: {countByStatus('completed')}</Badge>
+                  <Badge variant="outline" className="text-xs bg-red-100">Failed: {countByStatus('failed')}</Badge>
+                </div>
               </div>
               
-              <div className="flex space-x-2">
+              <div className="flex flex-wrap gap-2">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={selectAllVisible}
                 >
                   {selectedTargets.length === filteredTargets.length ? 'Deselect All' : 'Select All'}
+                </Button>
+                
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={moveToLoaded}
+                >
+                  <Check className="mr-2 h-3 w-3" />
+                  Move Brushed to Loaded
                 </Button>
                 
                 <AlertDialog>

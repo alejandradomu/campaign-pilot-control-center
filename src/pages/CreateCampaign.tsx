@@ -26,10 +26,10 @@ import { mockTemplates } from '@/data/mockData';
 
 const formSchema = z.object({
   name: z.string().min(3, { message: 'Campaign name is required' }),
+  campaignId: z.string().min(3, { message: 'Campaign ID is required' }),
   type: z.enum(['email', 'sms', 'mixed'], { required_error: 'Please select a campaign type' }),
-  referenceCode: z.string().min(3, { message: 'Reference code is required' }),
-  emailTemplateId: z.string().optional(),
-  smsTemplateId: z.string().optional(),
+  templateId: z.string().min(1, { message: 'Sendgrid template ID is required' }),
+  templateFields: z.string().optional(),
   scheduledAt: z.date().optional(),
 });
 
@@ -43,8 +43,10 @@ const CreateCampaign = () => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: '',
+      campaignId: '',
       type: 'email',
-      referenceCode: '',
+      templateId: '',
+      templateFields: '',
     },
   });
 
@@ -93,10 +95,10 @@ const CreateCampaign = () => {
                 
                 <FormField
                   control={form.control}
-                  name="referenceCode"
+                  name="campaignId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Reference Code</FormLabel>
+                      <FormLabel>Campaign ID</FormLabel>
                       <FormControl>
                         <Input placeholder="e.g. Q2-ONBOARD-2023" {...field} />
                       </FormControl>
@@ -140,69 +142,39 @@ const CreateCampaign = () => {
                   )}
                 />
                 
-                {(watchType === 'email' || watchType === 'mixed') && (
-                  <FormField
-                    control={form.control}
-                    name="emailTemplateId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email Template</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select an email template" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {mockTemplates
-                              .filter(template => template.type === 'email')
-                              .map(template => (
-                                <SelectItem key={template.id} value={template.id}>
-                                  {template.name}
-                                </SelectItem>
-                              ))}
-                          </SelectContent>
-                        </Select>
-                        <FormDescription>
-                          Select the email template to use for this campaign
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
+                <FormField
+                  control={form.control}
+                  name="templateId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Sendgrid Template ID</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. d-f3ecde774b0543a6a6f79d9b4709378f" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        The template ID from Sendgrid
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 
-                {(watchType === 'sms' || watchType === 'mixed') && (
-                  <FormField
-                    control={form.control}
-                    name="smsTemplateId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>SMS Template</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select an SMS template" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {mockTemplates
-                              .filter(template => template.type === 'sms')
-                              .map(template => (
-                                <SelectItem key={template.id} value={template.id}>
-                                  {template.name}
-                                </SelectItem>
-                              ))}
-                          </SelectContent>
-                        </Select>
-                        <FormDescription>
-                          Select the SMS template to use for this campaign
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
+                <FormField
+                  control={form.control}
+                  name="templateFields"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Template Fields (JSON)</FormLabel>
+                      <FormControl>
+                        <Input placeholder='e.g. {"firstName":"{{firstName}}","actionUrl":"{{actionUrl}}"}' {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        JSON fields that will be used in the template
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 
                 <FormField
                   control={form.control}
