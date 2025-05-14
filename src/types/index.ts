@@ -68,6 +68,8 @@ export interface Metrics {
   activeCampaigns: number;
   totalTargets: number;
   successRate: number;
+  bounceCount: number;  // Added this property
+  failCount: number;    // Added this property
   campaigns: {
     name: string;
     targets: number;

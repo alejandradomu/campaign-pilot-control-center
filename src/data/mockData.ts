@@ -229,6 +229,8 @@ export const mockMetrics: Metrics = {
   activeCampaigns: 1,
   totalTargets: 7,
   successRate: 78.4,
+  bounceCount: 50, // Added this property
+  failCount: 165,  // Added this property
   campaigns: [
     {
       name: 'Q1 New User Onboarding',
