@@ -1,11 +1,9 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { Calendar } from 'lucide-react';
-import { format } from 'date-fns';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,25 +18,19 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { mockTemplates } from '@/data/mockData';
 
 const formSchema = z.object({
-  name: z.string().min(3, { message: 'Campaign name is required' }),
+  name: z.string().min(3, { message: 'Journey name is required' }),
   campaignId: z.string().min(3, { message: 'Campaign ID is required' }),
-  type: z.enum(['email', 'sms', 'mixed'], { required_error: 'Please select a campaign type' }),
+  type: z.enum(['email', 'text'], { required_error: 'Please select a journey type' }),
   templateId: z.string().min(1, { message: 'Sendgrid template ID is required' }),
   templateFields: z.string().optional(),
-  scheduledAt: z.date().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
 const CreateCampaign = () => {
-  const [date, setDate] = useState<Date | undefined>(undefined);
-  const [campaignType, setCampaignType] = useState<'email' | 'sms' | 'mixed'>('email');
-  
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -49,27 +41,25 @@ const CreateCampaign = () => {
       templateFields: '',
     },
   });
-
-  const watchType = form.watch('type');
   
   const onSubmit = (data: FormValues) => {
     // Here you would normally send this data to your API
-    console.log('Campaign data:', data);
+    console.log('Journey data:', data);
     
-    toast.success('Campaign created successfully', {
+    toast.success('Journey created successfully', {
       description: `${data.name} has been created and saved.`,
     });
   };
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <h1 className="text-3xl font-bold tracking-tight">Create Campaign</h1>
+      <h1 className="text-3xl font-bold tracking-tight">Create Journey</h1>
       
       <Card className="max-w-3xl mx-auto">
         <CardHeader>
-          <CardTitle>Campaign Details</CardTitle>
+          <CardTitle>Journey Details</CardTitle>
           <CardDescription>
-            Enter the details for your new campaign
+            Enter the details for your new journey
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -81,12 +71,12 @@ const CreateCampaign = () => {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Campaign Name</FormLabel>
+                      <FormLabel>Journey Name</FormLabel>
                       <FormControl>
                         <Input placeholder="e.g. Q2 Customer Onboarding" {...field} />
                       </FormControl>
                       <FormDescription>
-                        A descriptive name for your campaign
+                        A descriptive name for your journey
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -115,27 +105,23 @@ const CreateCampaign = () => {
                   name="type"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Campaign Type</FormLabel>
+                      <FormLabel>Journey Type</FormLabel>
                       <Select 
-                        onValueChange={(value: 'email' | 'sms' | 'mixed') => {
-                          field.onChange(value);
-                          setCampaignType(value);
-                        }}
+                        onValueChange={field.onChange}
                         defaultValue={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select campaign type" />
+                            <SelectValue placeholder="Select journey type" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="email">Email Only</SelectItem>
-                          <SelectItem value="sms">SMS Only</SelectItem>
-                          <SelectItem value="mixed">Mixed (Email & SMS)</SelectItem>
+                          <SelectItem value="email">Email</SelectItem>
+                          <SelectItem value="text">Text</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormDescription>
-                        The type of campaign you want to run
+                        The type of journey you want to run
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -164,55 +150,12 @@ const CreateCampaign = () => {
                   name="templateFields"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Template Fields (JSON)</FormLabel>
+                      <FormLabel>Template Fields (JSON) - Optional</FormLabel>
                       <FormControl>
                         <Input placeholder='e.g. {"firstName":"{{firstName}}","actionUrl":"{{actionUrl}}"}' {...field} />
                       </FormControl>
                       <FormDescription>
-                        JSON fields that will be used in the template
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="scheduledAt"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Schedule Date/Time (Optional)</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={'outline'}
-                              className={`w-full justify-start text-left font-normal ${
-                                !field.value && 'text-muted-foreground'
-                              }`}
-                            >
-                              {field.value ? (
-                                format(field.value, 'PPP')
-                              ) : (
-                                <span>Select a date</span>
-                              )}
-                              <Calendar className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <CalendarComponent
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            disabled={(date) => date < new Date()}
-                            initialFocus
-                            className="p-3 pointer-events-auto"
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormDescription>
-                        Set a date to schedule this campaign, or leave blank to save as draft
+                        Optional JSON fields that will be used in the template
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -220,7 +163,7 @@ const CreateCampaign = () => {
                 />
               </div>
               
-              <Button type="submit">Create Campaign</Button>
+              <Button type="submit">Create Journey</Button>
             </form>
           </Form>
         </CardContent>

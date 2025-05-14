@@ -63,18 +63,18 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Campaign manager specific colors
+				// Campaign manager specific colors - now with purple tones
 				campaign: {
-					primary: '#0EA5E9', // Sky blue
-					secondary: '#0284C7', // Darker blue
+					primary: '#C5B3E6', // Pastel purple
+					secondary: '#A78BCA', // Darker purple
 					success: '#10B981', // Green
 					warning: '#F59E0B', // Amber
 					error: '#EF4444', // Red
-					info: '#6366F1', // Indigo
+					info: '#A78BCA', // Purple-toned info
 					loaded: '#10B981', // Green for loaded status
 					brushed: '#F59E0B', // Amber for brushed status
 					pending: '#6B7280', // Gray for pending status
-					completed: '#8B5CF6', // Purple for completed status
+					completed: '#A78BCA', // Purple for completed status
 				}
 			},
 			borderRadius: {

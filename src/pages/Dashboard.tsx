@@ -1,12 +1,15 @@
 
 import React from 'react';
-import { BarChart3, Users, Mail, CheckCircle } from 'lucide-react';
+import { BarChart3, Users, Mail, AlertTriangle } from 'lucide-react';
 import { mockMetrics, mockCampaigns } from '@/data/mockData';
 import StatCard from '@/components/dashboard/StatCard';
 import CampaignList from '@/components/dashboard/CampaignList';
 import CampaignChart from '@/components/dashboard/CampaignChart';
 
 const Dashboard = () => {
+  // For demonstration purposes, let's calculate daily error rate
+  const dailyErrorRate = Math.round((mockMetrics.bounceCount + mockMetrics.failCount) / mockMetrics.totalTargets * 100);
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
@@ -18,26 +21,27 @@ const Dashboard = () => {
       
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          title="Total Campaigns"
-          value={mockMetrics.totalCampaigns}
+          title="Total Journeys Today"
+          value={mockMetrics.activeCampaigns}
           icon={<BarChart3 className="h-5 w-5" />}
         />
         <StatCard
-          title="Active Campaigns"
-          value={mockMetrics.activeCampaigns}
-          icon={<Mail className="h-5 w-5" />}
+          title="Targets in Last Journey"
+          value={mockMetrics.totalTargets}
+          icon={<Users className="h-5 w-5" />}
           trend={{ value: 10, positive: true }}
         />
         <StatCard
-          title="Total Targets"
-          value={mockMetrics.totalTargets}
-          icon={<Users className="h-5 w-5" />}
+          title="Active Journeys"
+          value={mockMetrics.activeCampaigns}
+          icon={<Mail className="h-5 w-5" />}
         />
         <StatCard
-          title="Success Rate"
-          value={`${mockMetrics.successRate}%`}
-          icon={<CheckCircle className="h-5 w-5" />}
-          trend={{ value: 5.2, positive: true }}
+          title="Daily Error Rate"
+          value={`${dailyErrorRate}%`}
+          icon={<AlertTriangle className="h-5 w-5" />}
+          trend={{ value: 2.1, positive: false }}
+          description="Bounce, Deferred, Dropped"
         />
       </div>
       

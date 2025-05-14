@@ -42,7 +42,7 @@ const Sidebar = () => {
         <div className="mb-8 mt-2">
           <h1 className="text-xl font-bold text-primary flex items-center">
             <BarChart3 className="mr-2 h-6 w-6" />
-            Campaign Manager
+            Control Tower
           </h1>
         </div>
         
@@ -56,7 +56,7 @@ const Sidebar = () => {
           <SidebarItem 
             href="/campaigns/create" 
             icon={PlusCircle} 
-            label="Create Campaign" 
+            label="Create Journey" 
             active={pathname === '/campaigns/create'} 
           />
           <SidebarItem 

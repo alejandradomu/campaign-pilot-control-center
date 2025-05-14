@@ -20,7 +20,7 @@ const CampaignChart = ({ data }: CampaignChartProps) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Campaign Performance</CardTitle>
+        <CardTitle>Journey Performance</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="h-64">
@@ -42,11 +42,11 @@ const CampaignChart = ({ data }: CampaignChartProps) => {
                 height={70}
                 tick={{ fontSize: 12 }}
               />
-              <YAxis yAxisId="left" orientation="left" stroke="#0EA5E9" />
-              <YAxis yAxisId="right" orientation="right" stroke="#10B981" />
+              <YAxis yAxisId="left" orientation="left" stroke="#C5B3E6" />
+              <YAxis yAxisId="right" orientation="right" stroke="#A78BCA" />
               <Tooltip />
-              <Bar yAxisId="left" dataKey="targets" name="Total Targets" fill="#0EA5E9" />
-              <Bar yAxisId="right" dataKey="successRate" name="Success Rate (%)" fill="#10B981" />
+              <Bar yAxisId="left" dataKey="targets" name="Total Targets" fill="#C5B3E6" />
+              <Bar yAxisId="right" dataKey="successRate" name="Success Rate (%)" fill="#A78BCA" />
             </BarChart>
           </ResponsiveContainer>
         </div>

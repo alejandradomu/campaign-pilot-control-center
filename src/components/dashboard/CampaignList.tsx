@@ -29,7 +29,7 @@ const CampaignList = ({ campaigns }: CampaignListProps) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Recent Campaigns</CardTitle>
+        <CardTitle>Recent Journeys</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
